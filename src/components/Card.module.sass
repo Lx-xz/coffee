@@ -1,0 +1,232 @@
+// A carta tem duas faces e gira em 3D. O tamanho vem de variáveis para a
+// mesma carta servir na mão, no tapete e na página do baralho.
+
+// Quanto a carta sobe ao passar o mouse — e continua subida durante o arraste.
+$levantada: 18px
+.palco
+  position: relative
+  flex: none
+  width: var(--carta-w, 132px)
+  height: var(--carta-h, 200px)
+  perspective: 1100px
+
+.carta
+  position: absolute
+  inset: 0
+  transform-style: preserve-3d
+  // translate primeiro: durante o arraste ele é o delta do ponteiro, em
+  // coordenadas de tela, e não pode ser girado pelo leque
+  // O JS só informa o delta do ponteiro em --ddx/--ddy; quem compõe posição,
+  // levantada e escala é o CSS, para hover e arraste não brigarem por --ty.
+  --ty: var(--lift, 0px)
+  transform: translate(var(--tx, 0px), var(--ty)) rotate(var(--rot, 0deg)) rotateY(var(--flip, 0deg)) scale(var(--sc, 1))
+  transition: transform .3s cubic-bezier(.2, .8, .25, 1)
+  touch-action: none
+  user-select: none
+
+.interativa
+  cursor: grab
+
+  &:focus-visible
+    outline: none
+
+  &:focus-visible .face
+    outline: 2px solid var(--destaque)
+    outline-offset: 3px
+
+.arrastando
+  // mantém a levantada e a escala do hover: sem isso a carta cai no instante
+  // em que você a pega, e parece que ela fugiu do cursor
+  --tx: var(--ddx, 0px)
+  --ty: calc(var(--lift, 0px) - #{$levantada} + var(--ddy, 0px))
+  --sc: 1.09
+  cursor: grabbing
+  transition: none
+  z-index: 90
+
+  .face
+    box-shadow: var(--sombra-alta)
+
+.indisponivel
+  cursor: not-allowed
+
+  .frente
+    opacity: .45
+    filter: grayscale(.6)
+
+// cresce ao passar o mouse — só quando dá para jogar e não está sendo arrastada
+@media (hover: hover)
+  .interativa:not(.indisponivel):not(.arrastando):hover
+    --ty: calc(var(--lift, 0px) - #{$levantada})
+    --sc: 1.09
+    z-index: 20
+
+    .face
+      box-shadow: var(--sombra-alta)
+
+// ------------------------------------------------------------------ faces
+.face
+  position: absolute
+  inset: 0
+  display: flex
+  flex-direction: column
+  background: var(--papel-alto)
+  border: 1px solid var(--linha)
+  border-radius: var(--raio)
+  box-shadow: var(--sombra)
+  overflow: hidden
+  backface-visibility: hidden
+  -webkit-backface-visibility: hidden
+
+.tras
+  transform: rotateY(180deg)
+  align-items: center
+  justify-content: center
+  background: var(--papel-baixo)
+
+// estampa do verso: os 3 ícones da logo (Coffee, Labor and Tears) repetidos,
+// sem nome nem texto — cada carta tem o mesmo verso, então é só padrão
+.padrao
+  position: absolute
+  inset: 6%
+  display: grid
+  grid-template-columns: repeat(3, 1fr)
+  grid-template-rows: repeat(3, 1fr)
+  place-items: center
+
+.padraoIcone
+  width: 44%
+  height: 44%
+  color: color-mix(in srgb, var(--tinta) 20%, transparent)
+
+  // uma leve rotação alternada por linha evita a leitura de grade rígida
+  &:nth-child(3n + 2)
+    transform: rotate(8deg)
+
+  &:nth-child(3n)
+    transform: rotate(-8deg)
+
+// ------------------------------------------------- frente, no estilo TCG
+.arte
+  position: relative
+  flex: none
+  display: grid
+  place-items: center
+  height: var(--carta-arte, 78px)
+  background: var(--papel-baixo)
+  border-bottom: 1px solid var(--linha)
+  color: color-mix(in srgb, var(--tinta) 42%, transparent)
+
+  // o ícone acompanha o tamanho da carta em vez de ficar preso em 40px
+  > svg
+    width: 46%
+    height: auto
+
+// custo preso ao canto superior esquerdo da carta; tipo, ao canto direito —
+// nenhum dos dois flutua sobre a arte, e o texto ganha o espaço que sobra
+.custo
+  position: absolute
+  top: 0
+  left: 0
+  z-index: 3
+  display: grid
+  place-items: center
+  min-width: 22px
+  height: 21px
+  padding: 0 5px
+  background: var(--energia)
+  border-bottom-right-radius: 7px
+  color: #f4efe3
+  font-family: var(--mono)
+  font-size: 12px
+  font-weight: 700
+  font-variant-numeric: tabular-nums
+
+.custoAlto
+  background: var(--estresse)
+
+.selo
+  position: absolute
+  top: 0
+  right: 0
+  z-index: 3
+  display: grid
+  place-items: center
+  width: 21px
+  height: 21px
+  background: color-mix(in srgb, var(--papel-baixo) 88%, var(--tinta))
+  border-bottom-left-radius: 7px
+  color: var(--tinta-fraca)
+
+.copias
+  position: absolute
+  right: 4px
+  bottom: 4px
+  z-index: 3
+  padding: 1px 7px
+  background: var(--papel-alto)
+  border: 1px solid var(--linha)
+  border-radius: 999px
+  color: var(--tinta-fraca)
+  font-family: var(--mono)
+  font-size: 11px
+  font-weight: 600
+
+.topo
+  display: flex
+  align-items: flex-start
+  gap: 6px
+  padding: 5px 8px 4px
+
+.nome
+  // acompanha o tamanho da carta: em carta pequena o nome de 3 linhas
+  // empurrava o texto do efeito para fora
+  font-size: clamp(10px, calc(var(--carta-h, 200px) * .066), 14px)
+  font-weight: 650
+  line-height: 1.18
+  display: -webkit-box
+  -webkit-line-clamp: 2
+  -webkit-box-orient: vertical
+  overflow: hidden
+
+.corpo
+  flex: 1
+  min-height: 0
+  display: flex
+  flex-direction: column
+  margin: 0 6px 6px
+  padding: 7px
+  background: var(--papel)
+  border: 1px solid color-mix(in srgb, var(--linha) 70%, transparent)
+  border-radius: 3px
+
+.texto
+  margin: 0
+  color: var(--tinta-fraca)
+  font-size: clamp(9px, calc(var(--carta-h, 200px) * .058), 12.5px)
+  line-height: 1.32
+  // o texto completo vive no detalhe; aqui ele só não pode vazar
+  display: -webkit-box
+  -webkit-line-clamp: 7
+  -webkit-box-orient: vertical
+  overflow: hidden
+
+// o tom do evento colore a borda da carta
+.evNegativo
+  border-color: var(--estresse)
+
+.evPositivo
+  border-color: var(--produtividade)
+
+.evAmbiguo
+  border-color: var(--destaque)
+
+.bloqueada
+  .frente
+    opacity: .8
+
+  .arte
+    background: repeating-linear-gradient(-45deg, var(--papel-baixo), var(--papel-baixo) 7px, transparent 7px, transparent 14px)
+
+  .selo
+    color: var(--destaque)

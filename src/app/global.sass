@@ -1,0 +1,48 @@
+@use "../styles/tokens"
+
+*, *::before, *::after
+  box-sizing: border-box
+
+// Nenhuma página rola por padrão — a home e a mesa são feitas para caber
+// na tela. A exceção (o baralho, que cresce com a coleção) reabre o scroll
+// vertical só ali, em shell.module.sass.
+html
+  height: 100dvh
+  overflow: hidden
+
+body
+  margin: 0
+  padding: 0
+  height: 100dvh
+  overflow: hidden
+  background: var(--papel)
+  color: var(--tinta)
+  font-family: var(--fonte)
+  font-size: 15px
+  line-height: 1.5
+  // leve textura de papel pautado
+  background-image: linear-gradient(transparent 27px, rgba(120, 110, 90, .07) 28px)
+  background-size: 100% 28px
+
+h1, h2, h3
+  margin: 0
+  font-weight: 650
+  letter-spacing: -.01em
+
+a
+  color: inherit
+
+button
+  font: inherit
+  color: inherit
+
+.page
+  max-width: 1040px
+  margin: 0 auto
+  padding-block: 32px
+  padding-left: 20px
+  padding-right: 20px
+
+.mono
+  font-family: var(--mono)
+  font-variant-numeric: tabular-nums
